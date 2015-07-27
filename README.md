@@ -3,7 +3,9 @@
 This is tellitto - a notification tool for pager, SMS, etc.
 
 Using a tellitto.cfg configuration file, a command like
+
     echo hello | tellitto bob
+
 will try mutliple methods, in turn, to contact "bob", until
 one succeeds, or the possibilities are exhausted.
 
@@ -27,6 +29,12 @@ It works nicely with genoa.
 
 You should be able to run "autoreconf" to create a configure
 script, and carry on from there.
+
+If you have the fpm (Effing Package Management), you should be able
+to create an RPM or DEB with
+
+    ./makepkg rpm
+    ./makepkg deb
 
 ## Notes
 
