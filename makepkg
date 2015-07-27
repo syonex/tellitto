@@ -15,7 +15,7 @@ umask 022
 # die if anything goes wrong
 set -e
 
-. VERSION
+. ./VERSION
 
 myname=`basename "$0"`
 tmp1="/tmp/$myname.1.$$"
