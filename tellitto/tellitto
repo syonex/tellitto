@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # notification mechanism - notify people via pager SMS etc.
-# John Sellens software@syonex.com
+# John Sellens info@syonex.com
+# https://github.com/syonex/tellitto
 
 
 cfg="/etc/tellitto/tellitto.cfg"

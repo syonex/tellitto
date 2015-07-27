@@ -20,6 +20,8 @@ Sample config fragment:
     bob    mail -s tellitto-notification bob@example.com
 
 
+See the sample config file in tellitto/tellitto.cfg
+
 It was originally written for use with Nagios notifications, but
 can be used as a generic (simple) SMS/pager frontend.
 
