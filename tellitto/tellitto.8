@@ -1,0 +1,25 @@
+.TH TELLITTO 8
+.SH NAME
+tellitto \- notify people via pager SMS etc.
+.SH SYNOPSIS
+.B tellitto person ...
+.SH DESCRIPTION
+Attempt to notify someone.
+.PP
+Controlled by the config file
+.I /etc/tellitto/tellitto.cfg
+which says which commands, in which order, to try until one works (or
+more accurately, doesn't claim to fail).
+.PP
+So, for example,
+one can try an SNPP server, but if you can't get there,
+you can connect to an SMS provider, or fall back to mail if
+all else fails.
+Or even send a fax.
+.SH "SEE ALSO"
+.SH BUGS
+This man page could be better.
+.SH AUTHOR
+John Sellens, software@syonex.com
+.br
+while at FreshBooks www.freshbooks.com

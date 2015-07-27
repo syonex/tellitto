@@ -1,0 +1,129 @@
+#!/bin/sh
+
+# notification mechanism - notify people via pager SMS etc.
+# John Sellens software@syonex.com
+
+
+cfg="/etc/tellitto/tellitto.cfg"
+
+PATH="/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/sbin:/usr/sbin"
+export PATH
+umask 022
+
+myname=`basename "$0"`
+tmpmsg="/tmp/$myname.msg.$$"
+tmpcfg="/tmp/$myname.cfg.$$"
+rm -rf "$tmpmsg" "$tmpcfg"
+trap "rm -rf '$tmpmsg' '$tmpcfg'" EXIT
+
+verbose=true
+# verbose=false
+
+err=0
+
+fyi() {
+    logger -t "$myname" -i -- "$$" "FYI:" "$@"
+    $verbose && echo "$myname: FYI:" "$@"
+}
+
+error() {
+    logger -t "$myname" -i -- "$$" "$@"
+    echo 1>&2 "$myname:" "$@"
+    err=1
+}
+
+fatal() {
+    error "$@"
+    # some OS's don't let you remove the current directory (AIX?)
+    cd /
+    exit 1
+}
+
+usage() {
+    fatal "usage: $myname user ..."
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+	--)
+	    shift
+	    break
+	    ;;
+	-*)
+	    error unexpected option "$1"
+	    usage
+	    ;;
+	*)
+	    break
+	    ;;
+    esac
+    shift
+done
+
+if [ $# -eq 0 ]; then
+    usage
+fi
+
+if [ ! -r "$cfg" ]; then
+    fatal config file missing or unreadable: "$cfg"
+fi
+
+# First things first - stash the message on stdin to $tmpmsg
+cat > "$tmpmsg"
+if [ ! -s "$tmpmsg" ]; then
+    fatal empty message on stdin, doing nothing
+fi
+if $verbose ; then
+    (
+	echo "$$" "message text is"
+	cat "$tmpmsg"
+    ) | logger -t "$myname" -i
+fi
+# Stash a decommented version of the config so we don't have
+# to loop in a sub-shell in tell().
+sed < "$cfg" \
+    -e 's/^[[:blank:]]*#.*$//' -e 's/^[[:blank:]]*$//' -e '/^$/d' \
+    > "$tmpcfg"
+if [ $? -ne 0 ]; then
+    fatal sed decommenting of failed - weird, giving up
+fi
+if [ ! -s "$tmpmsg" ]; then
+    error config file empty once decommented "$cfg"
+fi
+
+tell () {
+    local tried ok
+    ok="no"
+    tried=0
+    fyi telling "$1"
+    # input redirection at the done
+    while read who cmd args ; do
+	# echo trying $who $cmd "$args"
+	if [ -z "$cmd" ]; then
+	    fatal could not find command on this config line: "$who" "$cmd" "$args"
+	fi
+	if [ "$1" = "$who" ]; then
+	    fyi running "$cmd" "$args"
+	    tried=$(($tried+1))
+	    $cmd $args < "$tmpmsg"
+	    if [ $? -eq 0 ]; then
+		ok="yes"
+		break
+	    fi
+	fi
+    done < "$tmpcfg"
+    # echo tried is $tried
+    if [ "$tried" -le 0 ]; then
+	error did not find any notification commands for "$1"
+    elif [ "$ok" != "yes" ]; then
+	error all notifications failed for "$1"
+    fi
+}
+
+while [ $# -gt 0 ]; do
+    tell "$1"
+    shift
+done
+
+
+exit $err
