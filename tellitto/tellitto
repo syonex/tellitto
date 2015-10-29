@@ -41,11 +41,21 @@ fatal() {
 }
 
 usage() {
-    fatal "usage: $myname user ..."
+    fatal "usage: $myname [-f cfgfile] user ..."
 }
 
 while [ $# -gt 0 ]; do
     case "$1" in
+	-f)
+	    if [ -z "$2" ]; then
+		fatal "need cfgfile arg for -f option"
+	    fi
+	    if [ ! -f "$2" ]; then
+		fatal "cfgfile missing or not a file: $2"
+	    fi
+	    cfg="$2"
+	    shift
+	    ;;
 	--)
 	    shift
 	    break
@@ -93,23 +103,30 @@ if [ ! -s "$tmpmsg" ]; then
 fi
 
 tell () {
-    local tried ok
+    local tried ok keepgoing
     ok="no"
     tried=0
     fyi telling "$1"
     # input redirection at the done
     while read who cmd args ; do
 	# echo trying $who $cmd "$args"
+	keepgoing="false"
 	if [ -z "$cmd" ]; then
 	    fatal could not find command on this config line: "$who" "$cmd" "$args"
 	fi
 	if [ "$1" = "$who" ]; then
+	    case "$cmd" in
+		+*)
+		    keepgoing="true"
+		    cmd=`echo "$cmd" | sed -e 's/+//'`
+		    ;;
+	    esac
 	    fyi running "$cmd" "$args"
 	    tried=$(($tried+1))
 	    $cmd $args < "$tmpmsg"
 	    if [ $? -eq 0 ]; then
 		ok="yes"
-		break
+		$keepgoing || break
 	    fi
 	fi
     done < "$tmpcfg"

@@ -2,12 +2,16 @@
 .SH NAME
 tellitto \- notify people via pager SMS etc.
 .SH SYNOPSIS
-.B tellitto person ...
+.B tellitto
+.IR [ "-f cfgfile" ]
+.I person ...
 .SH DESCRIPTION
 Attempt to notify someone.
 .PP
-Controlled by the config file
-.I /etc/tellitto/tellitto.cfg
+Controlled by the config file specified with the
+.I -f
+option (default
+.IR /etc/tellitto/tellitto.cfg )
 which says which commands, in which order, to try until one works (or
 more accurately, doesn't claim to fail).
 .PP
